@@ -16,7 +16,7 @@ import {createBrowserRouter} from "react-router-dom";
       element: <AuthRoute><Layout/></AuthRoute>,
       children:[
         {
-          path: "home",
+          index: 1,
           element: <Home/>,
         },
         {
