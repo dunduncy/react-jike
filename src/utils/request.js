@@ -1,6 +1,7 @@
 // axios 的封装处理
 import axios from 'axios'
-import {getToken} from '@/utils'
+import {clearToken, getToken} from '@/utils'
+import router from '@/router'
 // 1.根域名配置
 // 2.超时时间
 // 3.请求拦截器 / 响应拦截器
@@ -29,6 +30,11 @@ request.interceptors.response.use((response) => {
   return response.data
 }, (error) => {
   // 超出 2xx 范围的状态码都会触发该函数。
+  if (error.response.status === 401) {
+    clearToken()
+    router.navigate('/login')
+    window.location.reload()
+  }
   // 对响应错误做点什么
   return Promise.reject(error)
 })
