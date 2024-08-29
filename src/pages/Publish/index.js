@@ -48,6 +48,20 @@ const Publish = () => {
     // 2、调用接口
     createArticleAPI(reqData)
   }
+
+  // 上传图片
+  const [imageList, setImageList] = useState([])
+  const onUploadChange = (info) => {
+      setImageList(info.fileList)
+  }
+
+  // 控制图片Type
+  const [imageType, setImageType] = useState(0)
+
+  const onTypeChange = (e) => {
+    console.log(e.target.value)
+    setImageType(e.target.value)
+  }
   return (
     <div className="publish">
       <Card
@@ -62,8 +76,8 @@ const Publish = () => {
         <Form
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 16 }}
-          initialValues={{ type: 1 }}
-          onFinish = {onFinish}
+          initialValues={{ type: 0 }}
+          onFinish={onFinish}
         >
           <Form.Item
             label="标题"
@@ -86,6 +100,29 @@ const Publish = () => {
                 })
               }
             </Select>
+          </Form.Item>
+          <Form.Item label="封面">
+            <Form.Item name="type">
+              <Radio.Group onChange={onTypeChange}>
+                <Radio value={1}>单图</Radio>
+                <Radio value={3}>三图</Radio>
+                <Radio value={0}>无图</Radio>
+              </Radio.Group>
+            </Form.Item>
+            {imageType > 0 &&
+            <Upload
+              name="image"
+              listType="picture-card"
+              showUploadList
+              action={'http://geek.itheima.net/v1_0/upload'}
+              onChange={onUploadChange}
+              maxCount={imageType}
+              multiple={imageType > 1}
+            >
+              <div style={{ marginTop: 8 }}>
+                <PlusOutlined />
+              </div>
+            </Upload>}
           </Form.Item>
           <Form.Item
             label="内容"
