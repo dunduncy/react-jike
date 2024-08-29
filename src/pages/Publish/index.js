@@ -33,7 +33,7 @@ const Publish = () => {
   }, [])
 
   // 提交表单
-  const onFinish = (formValue) => {
+  const onFinish = async (formValue) => {
     // 校验封面类型imageType是否和实际的图片列表imageList数量是相等的
     if(imageList.length!==imageType) return message.warning('封面类型和图片数量不匹配')
     // 1、按照接口文档的格式处理收集到的表单数据
@@ -49,7 +49,8 @@ const Publish = () => {
       }
     }
     // 2、调用接口
-    createArticleAPI(reqData)
+    await createArticleAPI(reqData)
+    message.success('发布文章成功')
   }
 
   // 上传图片
