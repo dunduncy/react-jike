@@ -69,7 +69,17 @@ const Publish = () => {
     // 1.通过id获取数据
     async function getArticleDetail(){
       const res = await getArticleById(articleId)
-      form.setFieldsValue(res.data)
+      const data = res.data
+      const {cover} = data
+      form.setFieldsValue({
+        ...data,
+        type:cover.type
+      })
+      // 回填图片列表
+      setImageType(cover.type)
+      // 显示图片
+      setImageList(cover.images.map(url=>{return {url}}))
+
     }
     getArticleDetail()
     // 2.调用实例方法 完成回填
@@ -131,6 +141,7 @@ const Publish = () => {
               onChange={onUploadChange}
               maxCount={imageType}
               multiple={imageType > 1}
+              fileList={imageList}
             >
               <div style={{ marginTop: 8 }}>
                 <PlusOutlined />
