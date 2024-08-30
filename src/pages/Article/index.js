@@ -14,11 +14,11 @@ const { RangePicker } = DatePicker
 
 const Article = () => {
   // 获取频道列表
-  const {channelList} = useChannel()
+  const { channelList } = useChannel()
   // 定义枚举数据
   const status = {
-    1:<Tag color="warning">待审核</Tag>,
-    2:<Tag color="success">审核通过</Tag>
+    1: <Tag color="warning">待审核</Tag>,
+    2: <Tag color="success">审核通过</Tag>
   }
   // 准备列数据
   const columns = [
@@ -38,7 +38,7 @@ const Article = () => {
     {
       title: '状态',
       dataIndex: 'status',
-      render: data =>status[data]
+      render: data => status[data]
     },
     {
       title: '发布时间',
@@ -88,19 +88,42 @@ const Article = () => {
       title: 'wkwebview离线化加载h5资源解决方案'
     }
   ]
-
+  // 筛选功能
+  // 1、准备参数
+  const [reqData, setReqData] = useState({
+    status: '',
+    channel_id: '',
+    begin_pubdate: '',
+    end_pubdate: "",
+    page: 1,
+    per_page: 4
+  })
   // 获取文章列表
-  const [list,setList] = useState([])
-  const [count,setCount] = useState(0)
-  useEffect(()=>{
+  const [list, setList] = useState([])
+  const [count, setCount] = useState(0)
+  useEffect(() => {
     async function getList() {
-      const res = await getArticleListAPI()
+      const res = await getArticleListAPI(reqData)
       setList(res.data.results)
       setCount(res.data.total_count)
     }
     getList()
-  },[])
-  
+  }, [reqData])
+
+
+  // 2、获取筛选数据
+  const onFinish = (formValue) => {
+    // 3、把表单收集到的数据放到参数中(不可变的方式)
+    setReqData({
+      ...reqData,
+      status: formValue.status,
+      channel_id: formValue.channel_id,
+      begin_pubdate: formValue.date[0].format('YYYY-MM-DD'),
+      end_pubdate: formValue.date[1].format('YYYY-MM-DD'),
+    })
+    // 4、重新拉取文章列表 + 渲染table逻辑复用的 - 复用
+    // reqData依赖项发生变化 重复执行副作用函数
+  }
   return (
     <div>
       <Card
@@ -112,7 +135,7 @@ const Article = () => {
         }
         style={{ marginBottom: 20 }}
       >
-        <Form initialValues={{ status: '' }}>
+        <Form initialValues={{ status: '' }} onFinish={onFinish}>
           <Form.Item label="状态" name="status">
             <Radio.Group>
               <Radio value={''}>全部</Radio>
