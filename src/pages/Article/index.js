@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom'
-import { Card, Breadcrumb, Form, Button, Radio, DatePicker, Select } from 'antd'
+import { Card, Breadcrumb, Form, Button, Radio, DatePicker, Select, Popconfirm, message } from 'antd'
 import locale from 'antd/es/date-picker/locale/zh_CN'
 
 import { Table, Tag, Space } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import img404 from '@/assets/error.png'
 import { useChannel } from '@/hooks/useChannel'
-import { getArticleListAPI } from '@/apis/article'
+import { delArticleAPI, getArticleListAPI } from '@/apis/article'
 import { useEffect, useState } from 'react'
 
 const { Option } = Select
@@ -62,12 +62,20 @@ const Article = () => {
         return (
           <Space size="middle">
             <Button type="primary" shape="circle" icon={<EditOutlined />} />
-            <Button
-              type="primary"
-              danger
-              shape="circle"
-              icon={<DeleteOutlined />}
-            />
+            <Popconfirm
+              title="删除文章"
+              description="确认要删除当前文章吗?"
+              onConfirm={()=>onConfirm(data)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button
+                type="primary"
+                danger
+                shape="circle"
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
           </Space>
         )
       }
@@ -132,6 +140,15 @@ const Article = () => {
       page
     })
   }
+
+  // 删除
+  const onConfirm = async (data)=>{
+    await delArticleAPI(data.id)
+    message.success('删除成功')
+    setReqData({
+      ...reqData
+    })
+  }
   return (
     <div>
       <Card
@@ -183,13 +200,12 @@ const Article = () => {
       <Card title={`根据筛选条件共查询到 ${count} 条结果：`}>
         <Table rowKey="id" columns={columns} dataSource={list}
           pagination={{
-            current:reqData.page,
+            current: reqData.page,
             pageSize: reqData.per_page,
             onChange: onPageChange,
             total: count
           }}
         />
-
       </Card>
     </div>
   )
