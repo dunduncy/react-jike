@@ -18,19 +18,18 @@ import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import { useEffect, useState } from 'react'
-import { createArticleAPI, getArticleById, getChannelAPI } from '@/apis/article'
+import { createArticleAPI, getArticleById, getChannelAPI, updateArticleAPI } from '@/apis/article'
 import { useChannel } from '@/hooks/useChannel'
 const { Option } = Select
 
 const Publish = () => {
-  const { TextArea } = Input;
-   // 获取频道列表
-  const {channelList} = useChannel()
+  // 获取频道列表
+  const { channelList } = useChannel()
 
   // 提交表单
   const onFinish = async (formValue) => {
     // 校验封面类型imageType是否和实际的图片列表imageList数量是相等的
-    if(imageList.length!==imageType) return message.warning('封面类型和图片数量不匹配')
+    if (imageList.length !== imageType) return message.warning('封面类型和图片数量不匹配')
     // 1、按照接口文档的格式处理收集到的表单数据
     const { channel_id, content, title } = formValue
 
@@ -40,18 +39,34 @@ const Publish = () => {
       title,
       cover: {
         type: imageType,
-        images: imageList.map(item=>item.response.data.url)
+        // 这里的url处理逻辑只是在新增时候的逻辑
+        // 编辑的时候需要处理
+        images: imageList.map(item => {
+          if (item.response) {
+            return item.response.data.url
+          } else {
+            return item.url
+          }
+        })
       }
     }
     // 2、调用接口
-    await createArticleAPI(reqData)
-    message.success('发布文章成功')
+    // 处理调用不同的接口 新增-新增接口 编辑状态-更新接口 id
+    if (articleId) {
+      // 更新接口
+      await updateArticleAPI({...reqData,id:articleId})
+      message.success('更新成功')
+    } else {
+      await createArticleAPI(reqData)
+      message.success('发布文章成功')
+    }
+
   }
 
   // 上传图片
   const [imageList, setImageList] = useState([])
   const onUploadChange = (info) => {
-      setImageList(info.fileList)
+    setImageList(info.fileList)
   }
 
   // 控制图片Type
@@ -65,35 +80,35 @@ const Publish = () => {
   const articleId = searchParams.get('id')
   // 获取实例
   const [form] = Form.useForm()
-  useEffect(()=>{
+  useEffect(() => {
     // 1.通过id获取数据
-    async function getArticleDetail(){
+    async function getArticleDetail() {
       const res = await getArticleById(articleId)
       const data = res.data
-      const {cover} = data
+      const { cover } = data
       form.setFieldsValue({
         ...data,
-        type:cover.type
+        type: cover.type
       })
       // 回填图片列表
       setImageType(cover.type)
       // 显示图片
-      setImageList(cover.images.map(url=>{return {url}}))
+      setImageList(cover.images.map(url => { return { url } }))
 
     }
     // 只有有id的时候才能调用此函数
-    if(articleId){
+    if (articleId) {
       getArticleDetail()
     }
     // 2.调用实例方法 完成回填
-  },[articleId,form])
+  }, [articleId, form])
   return (
     <div className="publish">
       <Card
         title={
           <Breadcrumb items={[
             { title: <Link to={'/'}>首页</Link> },
-            { title: articleId?'编辑文章':'发布文章' },
+            { title: articleId ? '编辑文章' : '发布文章' },
           ]}
           />
         }
@@ -136,20 +151,20 @@ const Publish = () => {
               </Radio.Group>
             </Form.Item>
             {imageType > 0 &&
-            <Upload
-              name="image"
-              listType="picture-card"
-              showUploadList
-              action={'http://geek.itheima.net/v1_0/upload'}
-              onChange={onUploadChange}
-              maxCount={imageType}
-              multiple={imageType > 1}
-              fileList={imageList}
-            >
-              <div style={{ marginTop: 8 }}>
-                <PlusOutlined />
-              </div>
-            </Upload>}
+              <Upload
+                name="image"
+                listType="picture-card"
+                showUploadList
+                action={'http://geek.itheima.net/v1_0/upload'}
+                onChange={onUploadChange}
+                maxCount={imageType}
+                multiple={imageType > 1}
+                fileList={imageList}
+              >
+                <div style={{ marginTop: 8 }}>
+                  <PlusOutlined />
+                </div>
+              </Upload>}
           </Form.Item>
           <Form.Item
             label="内容"
